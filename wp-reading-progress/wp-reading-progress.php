@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: WP Reading Progress
-Plugin URI: https://github.com/joerivanveen/wp-reading-progress
+Plugin Name: WP Reading Progress for DL
+Plugin URI: https://github.com/barroyo/wp-reading-progress/
 Description: Light weight customizable reading progress bar. Great UX on longreads. Includes estimated reading time (beta).
 Version: 1.6.0
 Requires at least: 4.9
@@ -33,7 +33,7 @@ function ruigehond006_run() {
 		add_action( 'admin_init', 'ruigehond006_settings' );
 		add_action( 'admin_menu', 'ruigehond006_menuitem' );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'ruigehond006_settingslink' ); // settings link on plugins page
-		add_action( 'add_meta_boxes', 'ruigehond006_meta_box_add' ); // in the box the user can activate the bar for a single post
+		//add_action( 'add_meta_boxes', 'ruigehond006_meta_box_add' ); // in the box the user can activate the bar for a single post
 		add_action( 'save_post', 'ruigehond006_meta_box_save' );
 	} else {
 		wp_enqueue_script( 'ruigehond006_javascript', plugin_dir_url( __FILE__ ) . 'wp-reading-progress.min.js', false, RUIGEHOND006_VERSION, true );
@@ -104,6 +104,7 @@ function ruigehond006_ert( $content = null, $args = null ) {
 	}
 	$speed   = 250;
 	$options = get_option( 'ruigehond006' );
+	$options = get_option( 'ruigehond006_reading' );
 	if ( isset( $options['ert_speed'] ) && (int) $options['ert_speed'] > 0 ) {
 		$speed = (int) $options['ert_speed'];
 	}
@@ -252,6 +253,20 @@ function ruigehond006_settings() {
 		esc_html__( 'Progress bar thickness', 'wp-reading-progress' ), // title
 		$option,
 		sprintf( $string, '<a>.5vh</a>', '<a>6px</a>' )
+	);
+	ruigehond006_add_settings_field(
+		'content_container_id',
+		'text-short',
+		esc_html__( 'Id of the container where the reading content is.', 'wp-reading-progress' ), // content container id
+		$option,
+		esc_html__( "This is used to calculate the end of the readable content", 'wp-reading-progress')
+	);
+	ruigehond006_add_settings_field(
+		'start_at_scroll',
+		'text-short',
+		esc_html__( 'Scroll position to show the reading bar.', 'wp-reading-progress' ), // content container id
+		$option,
+		esc_html__( "At what specific scroll position you want the read progress bar to appear", 'wp-reading-progress')
 	);
 	ruigehond006_add_settings_field(
 		'aria_label',
@@ -469,6 +484,8 @@ function ruigehond006_settings_validate( $input ) {
 	$settings = array(
 		'stick_relative',
 		'mark_it_zero',
+		'content_container_id',
+		'start_at_scroll',
 		'include_comments',
 		'archives',
 		'no_css',
@@ -509,6 +526,8 @@ function ruigehond006_settings_validate( $input ) {
 				break;
 			case 'bar_color':
 			case 'bar_height':
+			case 'content_container_id':
+			case 'start_at_scroll':
 			case 'bar_attach':
 			case 'ert_snippet':
 			case 'aria_label':
@@ -536,6 +555,8 @@ function ruigehond006_add_defaults() {
 		'bar_attach' => 'top',
 		'bar_color'  => '#f1592a',
 		'bar_height' => '.5vh',
+		'content_container_id' => "readable-area",
+		'start_at_scroll' => "100",
 		'post_types' => array( 'post' ),
 	), '', true );
 }
